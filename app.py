@@ -413,4 +413,6 @@ def convert_stl(name):
 if __name__ == "__main__":
     print("Starting Image-to-3D server...")
     print(f"Models: {', '.join(m['name'] for m in MODELS.values())}")
-    app.run(host="127.0.0.1", port=7860, debug=False, threaded=True)
+    host = os.environ.get("HOST", "127.0.0.1")
+    port = int(os.environ.get("PORT", "7860"))
+    app.run(host=host, port=port, debug=False, threaded=True)
