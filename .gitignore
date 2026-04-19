@@ -1,0 +1,22 @@
+# Venvs (top-level and per-model)
+venv/
+**/venv/
+__pycache__/
+*.pyc
+.Python
+
+# Upstream model repos — cloned by setup.sh, not tracked
+stable-fast-3d/
+triposg/
+hunyuan3d/
+
+# Runtime outputs / uploads
+output_web/
+uploads/
+*.glb
+*.stl
+
+# Mac / editor noise
+.DS_Store
+.vscode/
+.idea/

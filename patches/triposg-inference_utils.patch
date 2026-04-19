@@ -1,0 +1,67 @@
+diff --git a/triposg/inference_utils.py b/triposg/inference_utils.py
+index 6ce292b..321d466 100755
+--- a/triposg/inference_utils.py
++++ b/triposg/inference_utils.py
+@@ -4,7 +4,10 @@ import torch.nn as nn
+ import scipy.ndimage
+ from skimage import measure
+ from einops import repeat
+-from diso import DiffDMC
++try:
++    from diso import DiffDMC
++except ImportError:
++    DiffDMC = None
+ import torch.nn.functional as F
+ 
+ from triposg.utils.typing import *
+@@ -98,7 +101,8 @@ def find_candidates_band(occupancy_grid: torch.Tensor, band_threshold: float, n_
+     return core_mesh_coords 
+ 
+ def expand_edge_region_fast(edge_coords, grid_size):
+-    expanded_tensor = torch.zeros(grid_size, grid_size, grid_size, device='cuda', dtype=torch.float16, requires_grad=False)
++    device = edge_coords.device
++    expanded_tensor = torch.zeros(grid_size, grid_size, grid_size, device=device, dtype=torch.float32, requires_grad=False)
+     expanded_tensor[edge_coords[:, 0], edge_coords[:, 1], edge_coords[:, 2]] = 1
+     if grid_size < 512:
+         kernel_size = 5
+@@ -186,7 +190,8 @@ def hierarchical_extract_geometry(geometric_func: Callable,
+         # breakpoint()
+         high_res_occupancy[indices[:, 0], indices[:, 1], indices[:, 2]] = values
+         grid_logits = high_res_occupancy
+-        torch.cuda.empty_cache()
++        if torch.cuda.is_available():
++            torch.cuda.empty_cache()
+     mesh_v_f = []
+     try:
+         print("final grids shape = ", grid_logits.shape)
+@@ -195,7 +200,8 @@ def hierarchical_extract_geometry(geometric_func: Callable,
+         mesh_v_f = (vertices.astype(np.float32), np.ascontiguousarray(faces))
+     except Exception as e:
+         print(e)
+-        torch.cuda.empty_cache()
++        if torch.cuda.is_available():
++            torch.cuda.empty_cache()
+         mesh_v_f = (None, None)
+ 
+     return [mesh_v_f]
+@@ -458,7 +464,8 @@ def flash_extract_geometry(
+         grid_logits = next_logits.unsqueeze(0)
+     
+     grid_logits[grid_logits == -10000.] = float('nan')
+-    torch.cuda.empty_cache()
++    if torch.cuda.is_available():
++        torch.cuda.empty_cache()
+     mesh_v_f = []
+     grid_logits = grid_logits[0]
+     try:
+@@ -473,7 +480,8 @@ def flash_extract_geometry(
+         mesh_v_f = (vertices.astype(np.float32), np.ascontiguousarray(faces))
+     except Exception as e:
+         print(e)
+-        torch.cuda.empty_cache()
++        if torch.cuda.is_available():
++            torch.cuda.empty_cache()
+         mesh_v_f = (None, None)
+ 
+     return [mesh_v_f]
+\ No newline at end of file
